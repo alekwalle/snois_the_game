@@ -13,10 +13,14 @@ public class Wepon : MonoBehaviour {
     float fireTimer;
     public Transform shootpoint;
     public int currentBullets;
+    private AudioSource _AudioSource;
+    public AudioClip shootSound;
+    public ParticleSystem muzzleFlash;
     
 	// Use this for initialization
 	void Start () {
         anim = GetComponent<Animator>();
+        _AudioSource = GetComponent<AudioSource>();
         currentBullets = bulletsPerMag;
 	}
 	
@@ -31,12 +35,19 @@ public class Wepon : MonoBehaviour {
             fireTimer += Time.deltaTime;
 	}
 
+    void FixedUpdate()
+    {
+        AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);
+
+        if (info.IsName("Fire")) anim.SetBool("Fire", false);
+    }
+
 
 
 
     private void Fire()
     {
-        if (fireTimer < fireRate) return; 
+        if (fireTimer < fireRate || currentBullets <= 0) return; 
 
         RaycastHit hit;
         if(Physics.Raycast(shootpoint.position, shootpoint.forward, out hit, weaponRange))
@@ -46,7 +57,16 @@ public class Wepon : MonoBehaviour {
 
 
         anim.SetBool("Fire", true);
+        muzzleFlash.Play();
+        PlayShootSound();
         currentBullets--;
         fireTimer = 0.0f; //resetter fireTimer
+
+    }
+
+    private void PlayShootSound()
+    {
+        _AudioSource.clip = shootSound;
+        _AudioSource.Play();
     }
 }
